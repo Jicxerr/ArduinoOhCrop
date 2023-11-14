@@ -1,0 +1,19 @@
+DHT11 Temperature and Humidity Sensor - Library -> DHT Sensor Library
+DS18B20 Waterproof Temperature Sensor - Library -? OneWire
+PH Sensor
+Ultrasonic Distance Sensor
+LCD1602 Module Display
+
+
+******  MONITORING  *******
+Water level
+Water Temp
+Water PH
+Water TDS
+
+Humidity
+Air Temperature
+
+LCD Display
+
+Firebase

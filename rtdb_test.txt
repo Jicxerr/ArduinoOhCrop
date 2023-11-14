@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "559208843836",
+    "firebase_url": "https://rtdbtest-e1f4a-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "rtdbtest-e1f4a",
+    "storage_bucket": "rtdbtest-e1f4a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:559208843836:android:3d8994e5d4f9789a20d139",
+        "android_client_info": {
+          "package_name": "com.ohc.ohcrop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMHnaHlRGylW3m0EyEPr9ccA0CrqxE04w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,5 @@
+TDS Solution 1382 microsiemens/centimeter -> 691 - 700 ppm
+
+Arduino 700ppm
+
+NODEmcu 688ppm
