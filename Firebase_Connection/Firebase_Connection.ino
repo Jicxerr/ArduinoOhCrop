@@ -136,74 +136,99 @@ void loop(){
       Serial.println("FAILED: " + fbdo.errorReason());
     } 
 
-    //Firestore Write DATA
-    Serial.print("Batch write documents... ");
+    // //Firestore Write DATA
+    // Serial.print("Batch write documents... ");
 
-    // The dyamic array of write object firebase_firestore_document_write_t.
-    std::vector<struct firebase_firestore_document_write_t> writes;
+    // // The dyamic array of write object firebase_firestore_document_write_t.
+    // std::vector<struct firebase_firestore_document_write_t> writes;
 
-    // A write object that will be written to the document.
-    struct firebase_firestore_document_write_t update_write;
+    // // A write object that will be written to the document.
+    // struct firebase_firestore_document_write_t update_write;
 
-    // Set the write object write operation type.
-    // firebase_firestore_document_write_type_update,
-    // firebase_firestore_document_write_type_delete,
-    // firebase_firestore_document_write_type_transform
-    update_write.type = firebase_firestore_document_write_type_update;
+    // // Set the write object write operation type.
+    // // firebase_firestore_document_write_type_update,
+    // // firebase_firestore_document_write_type_delete,
+    // // firebase_firestore_document_write_type_transform
+    // update_write.type = firebase_firestore_document_write_type_update;
 
-    // Set the document content to write (transform)
+    // // Set the document content to write (transform)
+    // FirebaseJson content;
+    // String documentPath = "test_collection/test_document_map_value";
+    // String documentPath2 = "test_collection/test_document_timestamp";
+
+    // content.set("fields/myMap/mapValue/fields/key" + String(count) + "/mapValue/fields/name/stringValue", "value" + String(count));
+    // content.set("fields/myMap/mapValue/fields/key" + String(count) + "/mapValue/fields/count/stringValue", String(count));
+    // // Set the update document content
+    // update_write.update_document_content = content.raw();
+    // update_write.update_masks = "myMap.key" + String(count);
+
+    // // Set the update document path
+    // update_write.update_document_path = documentPath.c_str();
+
+    // // Add a write object to a write array.
+    // writes.push_back(update_write);
+
+    // // A write object that will be written to the document.
+    // struct firebase_firestore_document_write_t transform_write;
+
+    // // Set the write object write operation type.
+    // // firebase_firestore_document_write_type_update,
+    // // firebase_firestore_document_write_type_delete,
+    // // firebase_firestore_document_write_type_transform
+    // transform_write.type = firebase_firestore_document_write_type_transform;
+    // // Set the document path of document to write (transform)
+    // transform_write.document_transform.transform_document_path = documentPath2;
+    // // Set a transformation of a field of the document.
+    // struct firebase_firestore_document_write_field_transforms_t field_transforms;
+    // // Set field path to write.
+    // field_transforms.fieldPath = "myTime";
+    // // Set the transformation type.
+    // field_transforms.transform_type = firebase_firestore_transform_type_set_to_server_value;
+    // // Set the transformation content, server value for this case.
+    // // See https://firebase.google.com/docs/firestore/reference/rest/v1/Write#servervalue
+    // field_transforms.transform_content = "REQUEST_TIME"; // set timestamp to timestamp field
+    // // Add a field transformation object to a write object.
+    // transform_write.document_transform.field_transforms.push_back(field_transforms);
+
+    // // Add a write object to a write array.
+    // writes.push_back(transform_write);
+    // //if (Firebase.Firestore.batchWriteDocuments(&fbdo, FIREBASE_PROJECT_ID, "" /* databaseId can be (default) or empty */, writes /* dynamic array of firebase_firestore_document_write_t */, nullptr /* labels */))
+    // if (Firebase.Firestore.batchWriteDocuments(&fbdo, FIREBASE_PROJECT_ID, uid+"/report" , writes , nullptr ))
+    //   Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
+    // else
+    //   Serial.println("fs ERROR: "+fbdo.errorReason());
+    String documentPath = "user/"+uid+"/report//";
+
     FirebaseJson content;
-    String documentPath = "test_collection/test_document_map_value";
-    String documentPath2 = "test_collection/test_document_timestamp";
 
-    content.set("fields/myMap/mapValue/fields/key" + String(count) + "/mapValue/fields/name/stringValue", "value" + String(count));
-    content.set("fields/myMap/mapValue/fields/key" + String(count) + "/mapValue/fields/count/stringValue", String(count));
-    // Set the update document content
-    update_write.update_document_content = content.raw();
-    update_write.update_masks = "myMap.key" + String(count);
+    double temp = 2.0;
+    double humi = 1.0;
 
-    // Set the update document path
-    update_write.update_document_path = documentPath.c_str();
+    content.set("fields/temperature/doubleValue", String(temp).c_str());
+    content.set("fields/humidity/doubleValue", String(humi).c_str());
 
-    // Add a write object to a write array.
-    writes.push_back(update_write);
-
-    // A write object that will be written to the document.
-    struct firebase_firestore_document_write_t transform_write;
-
-    // Set the write object write operation type.
-    // firebase_firestore_document_write_type_update,
-    // firebase_firestore_document_write_type_delete,
-    // firebase_firestore_document_write_type_transform
-    transform_write.type = firebase_firestore_document_write_type_transform;
-    // Set the document path of document to write (transform)
-    transform_write.document_transform.transform_document_path = documentPath2;
-    // Set a transformation of a field of the document.
-    struct firebase_firestore_document_write_field_transforms_t field_transforms;
-    // Set field path to write.
-    field_transforms.fieldPath = "myTime";
-    // Set the transformation type.
-    field_transforms.transform_type = firebase_firestore_transform_type_set_to_server_value;
-    // Set the transformation content, server value for this case.
-    // See https://firebase.google.com/docs/firestore/reference/rest/v1/Write#servervalue
-    field_transforms.transform_content = "REQUEST_TIME"; // set timestamp to timestamp field
-    // Add a field transformation object to a write object.
-    transform_write.document_transform.field_transforms.push_back(field_transforms);
-
-    // Add a write object to a write array.
-    writes.push_back(transform_write);
-
-    if (Firebase.Firestore.batchWriteDocuments(&fbdo, FIREBASE_PROJECT_ID, "" /* databaseId can be (default) or empty */, writes /* dynamic array of firebase_firestore_document_write_t */, nullptr /* labels */))
+    if(Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw(), "temperature,humidity")){
       Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
-    else
-      Serial.println("fs ERROR: "+fbdo.errorReason());
+      return;
+    }else{
+      Serial.println(fbdo.errorReason());
+    }
+
+    if(Firebase.Firestore.createDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), content.raw())){
+      Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
+      return;
+    }else{
+      Serial.println(fbdo.errorReason());
+    }
+  }
+
+
 
     
     
-  }
+}
 
   //airtemp += 1;
 
 
 
-}
