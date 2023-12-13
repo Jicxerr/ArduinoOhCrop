@@ -14,12 +14,13 @@
 #include <DallasTemperature.h>//waterproof sensor library
 #include <DHT.h>//humidity&temp library
 #include <Wire.h>//ultrasonic distance sensor library
-#include <EEPROM.h>//TDS eeprom calibration
-#include "GravityTDS.h"//TDS library
+//#include <EEPROM.h>//TDS eeprom calibration
+//#include "GravityTDS.h"//TDS library
 #include <LiquidCrystal_I2C.h> // LCD library
 #include <Firebase_ESP_Client.h>//Firebase
 #include "addons/TokenHelper.h"//Firebase
 #include "addons/RTDBHelper.h"//Firebase
+
 
 //#define WIFI_SSID "HUAWEI-2.4G-8NqA"
 //#define WIFI_PASSWORD "p69CE656"
@@ -55,11 +56,48 @@ int pwmValue = 0;
 bool ledStatus = false;
 int count = 0;
 // TDS **********************************************************
-#include <EEPROM.h>
-#include "GravityTDS.h"
-#define TdsSensorPin A0
-GravityTDS gravityTds;
-float tdstemperature = 25,tdsValue = 0;
+// #include <EEPROM.h>
+// #include "GravityTDS.h"
+// #define TdsSensorPin A0
+// GravityTDS gravityTds;
+// float tdstemperature = 25,tdsValue = 0;
+
+#define TdsSensorPin 36
+#define VREF 5.5       // analog reference voltage(Volt) of the ADC
+#define SCOUNT  30     // sum of sample point
+
+int analogBuffer[SCOUNT];     // store the analog value in the array, read from ADC
+int analogBufferTemp[SCOUNT]; 
+int analogBufferIndex = 0;
+int copyIndex = 0;
+
+float averageVoltage = 0;
+float tdsValue = 0;
+float temperature = 25;
+
+int getMedianNum(int bArray[], int iFilterLen){
+  int bTab[iFilterLen];
+  for (byte i = 0; i<iFilterLen; i++)
+  bTab[i] = bArray[i];
+  int i, j, bTemp;
+  for (j = 0; j < iFilterLen - 1; j++) {
+    for (i = 0; i < iFilterLen - j - 1; i++) {
+      if (bTab[i] > bTab[i + 1]) {
+        bTemp = bTab[i];
+        bTab[i] = bTab[i + 1];
+        bTab[i + 1] = bTemp;
+      }
+    }
+  }
+  if ((iFilterLen & 1) > 0){
+    bTemp = bTab[(iFilterLen - 1) / 2];
+  }
+  else {
+    bTemp = (bTab[iFilterLen / 2] + bTab[iFilterLen / 2 - 1]) / 2;
+  }
+  return bTemp;
+}
+
 
 // LCD Display **********************************************************
 int lcdColumns = 16;
@@ -232,6 +270,8 @@ void setup() {
   }
 
   initFirebase();//initialize firebase
+
+   pinMode(TdsSensorPin,INPUT);//tds
   
   dht.begin();// humidity & temp sensor
   wptsensor.begin();// waterproof Temp sensor
@@ -239,10 +279,12 @@ void setup() {
   pinMode(trig, OUTPUT);//ultrasonic distance sensor
   pinMode(echo, INPUT);//ultrasonic distance sensor
 
-  gravityTds.setPin(TdsSensorPin);//TDS Sensor
-  gravityTds.setAref(5.0);  //reference voltage on ADC, default 5.0V on Arduino UNO
-  gravityTds.setAdcRange(1024);  //1024 for 10bit ADC;4096 for 12bit ADC
-  gravityTds.begin();  //initialization
+
+
+  // gravityTds.setPin(TdsSensorPin);//TDS Sensor
+  // gravityTds.setAref(5.0);  //reference voltage on ADC, default 5.0V on Arduino UNO
+  // gravityTds.setAdcRange(1024);  //1024 for 10bit ADC;4096 for 12bit ADC
+  // gravityTds.begin();  //initialization
 
   lcd.setCursor(3,0);
   lcd.print( "Loading..." );//print to LCD
@@ -548,15 +590,35 @@ void pHSensor(){
 }
 
 void tDsSensor(){
-  //temperature = readTemperature();  //add your temperature sensor and read it
-  //tdstemperature = tempC;
-  gravityTds.setTemperature(tdstemperature);  // set the temperature and execute temperature compensation
-  gravityTds.update();  //sample and calculate
-  tdsValue = gravityTds.getTdsValue();  // then get the value
-  Serial.print("TDS:  "); Serial.print(tdsValue,0);
-  Serial.print("ppm");
+   // Analog sampling and TDS function
+  analogBuffer[analogBufferIndex] = analogRead(TdsSensorPin);
+  
+  analogBufferIndex = (analogBufferIndex + 1) % SCOUNT;
+
+  // Print TDS value
+  for (copyIndex = 0; copyIndex < SCOUNT; copyIndex++) {
+    analogBufferTemp[copyIndex] = analogBuffer[copyIndex];
+  }
+
+  averageVoltage = getMedianNum(analogBufferTemp, SCOUNT) * (float)VREF / 4096.0;
+
+  float compensationCoefficient = 1.0 + 0.02 * (temperature - 25.0);
+  float compensationVoltage = averageVoltage / compensationCoefficient;
+
+  tdsValue = (133.42 * compensationVoltage * compensationVoltage * compensationVoltage -
+              255.86 * compensationVoltage * compensationVoltage +
+              857.39 * compensationVoltage) * 0.5;
+
+  Serial.print("TDS Value: ");
+  Serial.print(tdsValue, 0);
+  Serial.println(" ppm");
+  //}
+  
+  // Serial.print("TDS:  "); Serial.print(tdsValue,0);
+  // Serial.print("ppm");
   //Serial.println();
 }
+
 
 void ultrasonicSensor(){
   digitalWrite(trig, LOW);
